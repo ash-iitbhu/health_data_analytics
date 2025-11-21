@@ -12,5 +12,5 @@ class Config:
         raise ValueError("GROQ_API_KEY not found in environment variables.")
     
 
-    dataset_path1 = "/Users/ashish/health_analytics/data/health_dataset1.csv"
-    dataset_path2 = "/Users/ashish/health_analytics/data/health_dataset2.csv"
+    dataset_path1 = "/app/data/health_dataset1.csv"
+    dataset_path2 = "/app/data/health_dataset2.csv"

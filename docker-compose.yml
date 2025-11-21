@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # --- 1. FastAPI Backend Service ---
+  backend:
+    # Use the custom Dockerfile for the backend
+    build: 
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: health_analytics_backend
+    # Map the internal container port 8000 to the host port 8000
+    ports:
+      - "8000:8000"
+    # Restart the container if it fails
+    restart: always
+    # Environment variables needed for the LLM API key
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    
+  # --- 2. Streamlit Frontend Service ---
+  frontend:
+    # Use the custom Dockerfile for the frontend
+    build: 
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: health_analytics_frontend
+    # Map the internal container port 8501 to the host port 8501
+    ports:
+      - "8501:8501"
+    restart: always
+    # Ensure the frontend starts AFTER the backend is ready
+    depends_on:
+      - backend
+    # Environment variables needed for the frontend (e.g., pointing to the backend)
+    environment:
+      # Use the Docker service name 'backend' to refer to the FastAPI app
+      - BACKEND_URL=http://backend:8000

@@ -1,0 +1,22 @@
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy frontend-specific dependencies (Streamlit and related libs)
+# Assuming you have a separate frontend_requirements.txt or use the main one
+COPY requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the Streamlit application code
+COPY frontend/frontend.py /app/
+
+# Expose the port where Streamlit will run (default is 8501)
+EXPOSE 8501
+
+# Command to run the Streamlit application
+# We use the --server.port and --server.address flags for Docker
+CMD ["streamlit", "run", "frontend.py", "--server.port=8501", "--server.address=0.0.0.0"]
