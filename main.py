@@ -5,8 +5,12 @@ from langchain_core.messages import HumanMessage
 from orchestrator.graph import app_graph
 from logger import get_logger
 import json
+from security.phi_redactor import PHIRedactor
+from security.input_guardrail import InputGuardrail
 
 logger = get_logger("API_Gateway")
+redactor = PHIRedactor()
+input_guard = InputGuardrail()
 
 app = FastAPI(title="Health GenAI Microservice")
 
@@ -16,8 +20,21 @@ class QueryRequest(BaseModel):
 @app.post("/analyze")
 async def analyze_data(request: QueryRequest):
     logger.info(f"Received query: {request.query}")
+
+    # Step 1: Redact PHI/PII from the query
+    redacted_query = redactor.redact_query(request.query)
+    logger.info(f"Redacted query: {redacted_query}")
+
+    # 2. INPUT GUARDRAIL CHECK (Scope and Adversarial Guardrail)
+    # Check the REDACTED query for scope violations or jailbreak attempts
+    valid, reason = input_guard.check_query(redacted_query)
+    if not valid:
+        refusal_message = input_guard.get_refusal_message(reason)
+        logger.warning(f"Refusal message: {refusal_message}")
+        return {"response": refusal_message, "trace": ["Input Guardrail triggered refusal."]}
+
     initial_state = {
-        "messages": [HumanMessage(content=request.query)],
+        "messages": [HumanMessage(content=redacted_query)],
         "sender": "User"
     }
     
