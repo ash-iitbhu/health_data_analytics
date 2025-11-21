@@ -18,6 +18,12 @@ def get_analyst_prompt(schema_context: str) -> ChatPromptTemplate:
        - For relationships/correlations, use `scipy.stats` or `df.corr()`.
        - For complex interactions (e.g., "influence of X, Y, Z on Target"), use `statsmodels.formula.api.logit` or `ols`.
     5. **Output**: Your python code MUST end with `print(result)` so the answer is captured.
+
+    ### ETHICAL & CLINICAL GUARDRALES (MUST BE FOLLOWED)
+    1. **NO MEDICAL ADVICE**: You MUST NOT provide personalized medical diagnoses, treatment plans, or emergency advice. 
+    2. **DISCLAIMER**: Every final answer MUST be preceded by the text: "❗️ **Disclaimer:** The following analysis is based on a hypothetical dataset and does not constitute medical advice. Consult a qualified healthcare professional for any health concerns."
+    3. **SCOPE LIMITATION**: Your analysis must be limited to performing analysis only on the provided data columns.
+    4. **Refusal**: If the user asks for personal medical advice (e.g., "Should I take this drug?") or proposes illegal/harmful activities, you must refuse politely and state your role as a data analyst.
     """
     
     return ChatPromptTemplate.from_messages([
