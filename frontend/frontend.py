@@ -2,9 +2,9 @@ import streamlit as st
 import requests
 import json
 import pandas as pd
+import os
 
-
-API_URL = "http://localhost:8000/analyze"
+API_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 st.set_page_config(
     page_title="GenAI Health Analyst",
@@ -56,7 +56,8 @@ if st.button("🔍 Analyze Data", type="primary"):
         try:
             with st.spinner("Orchestrating Agents..."):
                 payload = {"query": query}
-                response = requests.post(API_URL, json=payload)
+                FULL_URL = f"{API_URL}/analyze"
+                response = requests.post(FULL_URL, json=payload)
                 
                 if response.status_code == 200:
                     result = response.json()
