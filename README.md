@@ -40,20 +40,23 @@ The backend service needs your API key to function. Create a file named `.env` i
 GROQ_API_KEY="sk_your_groq_api_key_here"
 ```
 
-### 3. Run the notebook in `data_generator/mock_data_generator.ipynb` to generate synthetic data and place it inside `health-data-analytics/data/` folder
-It will create 2 datasets.
+### 3. place the datasets to be analysed in the `health-data-analytics/data/` folder.
 
-### 4. Build and start the container
+### 4. update datasets name in `config/config.py`.
+
+### 5. update  `config/data_schema.yaml` to represent correct schema of the datasets.
+
+### 5. Build and start the container
 ```
 docker compose up --build -d
 ```
 
-### 5. Review Backend Logs (Troubleshooting)
+### 6. Review Backend Logs (Troubleshooting)
 ```
 docker compose logs backend
 ```
 
-### 6. Access the application
+### 7. Access the application
 <table>
   <thead>
     <tr>

@@ -16,7 +16,7 @@ services:
     # Environment variables needed for the LLM API key
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
-    
+
   # --- 2. Streamlit Frontend Service ---
   frontend:
     # Use the custom Dockerfile for the frontend

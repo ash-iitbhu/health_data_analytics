@@ -10,7 +10,7 @@ from security.input_guardrail import InputGuardrail
 
 logger = get_logger("API_Gateway")
 redactor = PHIRedactor()
-input_guard = InputGuardrail()
+input_guard = InputGuardrail('guardrail_model/model/')
 
 app = FastAPI(title="Health GenAI Microservice")
 
@@ -43,15 +43,59 @@ async def analyze_data(request: QueryRequest):
     final_response = "No response generated."
     execution_log = []
 
+    MAX_STEPS = 10
+    step_count = 0
+
+    executed_codes = set()
     for event in events:
+        step_count += 1
+        if step_count > MAX_STEPS:
+            logger.warning("Max agent steps reached. Terminating execution.")
+            final_response = """Analysis stopped because it exceeded the maximum reasoning steps.
+                               Please try simplifying the query."""
+            return {
+                    "response": final_response,
+                    "trace": execution_log
+                }
+                        
+
         for node_name, value in event.items():
-            if "messages" in value:
-                msg = value["messages"][-1]
-                if node_name == "Data_Analyst" and msg.content and not msg.tool_calls:
-                    final_response = msg.content
+            if "messages" not in value:
+                continue
+
+            msg = value["messages"][-1]
+
+            if hasattr(msg, "tool_calls") and msg.tool_calls:
+                for tool_call in msg.tool_calls:
+                    code = tool_call["args"].get("code", "")
+                    execution_log.append(
+                                        f"""
+                                        ==============================
+                                        AGENT GENERATED PYTHON CODE
+                                        Node: {node_name}
+
+                                        {code}
+                                        ==============================
+                                        """
+                                        )
+                    
+                    if code in executed_codes:
+                        logger.warning("Duplicate code detected. breaking execution to prevent infinite loop.")
+                        final_response = "Analysis stopped because the agent repeated the same execution step."
+                        return {
+                            "response": final_response,
+                            "trace": execution_log
+                        }
+
+                    executed_codes.add(code)
+
+            # Capture normal messages
+            if msg.content:
+                execution_log.append(f"\n[{node_name}] {msg.content}")
+
+            if node_name == "Data_Analyst" and msg.content and not msg.tool_calls:
+                final_response = msg.content
                 
-                content = msg.content if msg.content else "[Tool Call]"
-                execution_log.append(f"{node_name}: {content}")
     logger.info("Analysis complete. Sending response.")
     return {
         "response": final_response,

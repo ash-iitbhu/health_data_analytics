@@ -3,11 +3,15 @@ import operator
 from langchain_groq import ChatGroq
 from langchain_core.messages import BaseMessage, AIMessage
 from pydantic import BaseModel
+import json
+from langchain_core.output_parsers import JsonOutputParser
+from pydantic import BaseModel
 
 from config.config import Config
-from data_generator.data_loader import data_manager
 from orchestrator.prompts import get_analyst_prompt, get_supervisor_prompt
 from orchestrator.tools import python_repl_tool
+from semantic.semantic_service import SchemaSemanticService
+from semantic.prompt_builder import build_semantic_prompt
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -42,14 +46,18 @@ def _get_llm_chain(is_analyst: bool):
     
     if is_analyst:
         # Analyst chain: Tool calling
-        analyst_prompt = get_analyst_prompt(data_manager.get_schema_context())
+        registered_schema = SchemaSemanticService().fetch_schema()
+        schema_context = build_semantic_prompt(registered_schema)
+
+        analyst_prompt = get_analyst_prompt(schema_context)
         return analyst_prompt | PRIMARY_LLM.bind_tools([python_repl_tool])
     else:
         # Supervisor chain: Structured output
         supervisor_prompt = get_supervisor_prompt()
         class RouterOutput(BaseModel):
             next_actor: str
-        return supervisor_prompt | PRIMARY_LLM.with_structured_output(RouterOutput)
+        parser = JsonOutputParser(pydantic_object=RouterOutput)
+        return supervisor_prompt | PRIMARY_LLM | parser
 
 # --- Node Functions (Simplified) ---
 
@@ -59,12 +67,18 @@ def supervisor_node(state):
     supervisor_chain = _get_llm_chain(is_analyst=False)
     
     logger.info("Supervisor invoked (using Groq).")
-    # Errors (like 401 Invalid Key) will now propagate from here
-    result = supervisor_chain.invoke(state)
+
+    try:
+        result = supervisor_chain.invoke(state)
+        next_actor = result.get("next_actor", "Data_Analyst")
+    except Exception as e:
+        logger.error(f"Supervisor chain failed: {e}")
+        # Default to Data Analyst if Supervisor fails to provide valid output
+        next_actor = "Data_Analyst"
     
     return {
         "sender": "Supervisor", 
-        "messages": [AIMessage(content=f"Routing to: {result.next_actor}")]
+        "messages": [AIMessage(content=f"Routing to: {next_actor}")]
     }
 
 def analyst_node(state):

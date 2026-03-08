@@ -30,6 +30,8 @@ class PHIRedactor:
             (r"(my address is) (.*)", r"\1 [REDACTED_ADDRESS]"),
             # Matches "my ssn is [SSN]"
             (r"(my ssn is) (.*)", r"\1 [REDACTED_SSN]"),
+            # Matches "my phone number is [Phone]"
+            (r"(my phone number is) (.*)", r"\1 [REDACTED_PHONE]"),
         ]
 
         # The replacement string format

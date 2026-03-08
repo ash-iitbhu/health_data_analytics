@@ -1,0 +1,96 @@
+version: 2.0
+
+tables:
+
+  df_lifestyle_genetics:
+    path: /app/data/health_dataset1.xlsm
+    primary_key: patient_number
+    description: lifestyle, disease and genetic information of patients. One row per patient.
+    columns:
+      patient_number:
+        measurement_level: Nominal
+        pii: true
+
+      level_of_hemoglobin:
+        measurement_level: continuous
+
+      blood_pressure_abnormality:
+        measurement_level: nominal
+        value_labels:
+          0: Normal
+          1: Abnormal
+
+      genetic_pedigree_coefficient:
+        measurement_level: continuous
+
+      age:
+        measurement_level: continuous
+
+      bmi:
+        measurement_level: continuous
+
+      sex:
+        measurement_level: nominal
+        value_labels:
+          0: Male
+          1: Female
+
+      pregnancy:
+        measurement_level: nominal
+        value_labels:
+          0: No
+          1: Yes
+
+      smoking:
+        measurement_level: nominal
+        value_labels:
+          0: No
+          1: Yes
+
+      salt_content_in_the_diet:
+        measurement_level: continuous
+
+      alcohol_consumption_per_day:
+        measurement_level: continuous
+
+      level_of_stress:
+        measurement_level: ordinal
+        value_labels:
+          1: Low
+          2: Normal
+          3: High
+
+      chronic_kidney_disease:
+        measurement_level: nominal
+        value_labels:
+          0: No
+          1: Yes
+
+      adrenal_and_thyroid_disorders:
+        measurement_level: nominal
+        value_labels:
+          0: No
+          1: Yes
+
+  df_physical_activity:
+    path: /app/data/health_dataset2.xlsm
+    primary_key: patient_number
+    description: daily phyical activity done by the patient. timeseries data with day number and steps taken per day for last 10 days.Longitudinal - Multiple rows per patient
+    columns:
+      patient_number:
+        measurement_level: Nominal
+        pii: true
+
+      day_number:
+        measurement_level: ordinal
+
+      physical_activity:
+        measurement_level: continuous
+
+relationships:
+  - name: lifestyle_activity_join
+    left_table: df_lifestyle_genetics
+    left_key: patient_number
+    right_table: df_physical_activity
+    right_key: patient_number
+    type: one_to_many

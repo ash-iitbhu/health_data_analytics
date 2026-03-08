@@ -9,7 +9,8 @@ COPY requirements.txt .
 
 # Install dependencies
 # We use --no-cache-dir to keep the image size small
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir --default-timeout=1000 --retries 5 -r requirements.txt
 
 # Copy the rest of the application code into the container
 # This assumes main.py, security/, orchestrator/ are all in the root directory
