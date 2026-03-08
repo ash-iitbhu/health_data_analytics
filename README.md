@@ -30,7 +30,7 @@ A custom GenAI solution for performing natural language–driven statistical ana
 - **PHI/PII protection** — regex and rule-based redactor strips identifiable information before any LLM call
 - **Custom DistilBERT guardrail classifier** — fine-tuned 4-class model detects jailbreaks, out-of-scope queries, and PHI requests (99.2% F1)
 - **Multi-agent LangGraph orchestration** — Supervisor routes queries to a Data Analyst agent that writes and executes Python code
-- **On-the-fly dataset joining** — datasets are never pre-consolidated; `pd.merge()` happens inside the sandboxed REPL per query
+- **On-the-fly dataset joining** — datasets are never pre-consolidated; All happens inside the sandboxed REPL per query
 - **Schema-driven prompt injection** — column names, value labels, measurement levels, and relationships are automatically injected into the LLM context
 - **Automated evaluation pipeline** — DeepEval-based LLM response scoring + classification metrics for guardrail correctness
 - **Containerised deployment** — single `docker compose up` command starts the full stack
@@ -68,7 +68,7 @@ User Query (Streamlit UI)
                │
                ▼
 ┌─────────────────────────────┐
-│  Stage 4: Response          │  ← Disclaimer prepended
+│  Stage 4: Response          │  ← Disclaimer prepended,
 │  Formatting & Return        │    Execution trace included
 └─────────────────────────────┘
                │
@@ -86,29 +86,29 @@ User Query (Streamlit UI)
 The application runs as two Docker services communicating over a virtual Docker network:
 
 ```
-┌────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────── ┐
 │                    Docker Network                       │
 │                                                         │
-│  ┌─────────────────────────┐   HTTP    ┌─────────────┐ │
-│  │  Frontend (Streamlit)   │ ────────► │  Backend    │ │
-│  │  Port: 8501             │           │  (FastAPI)  │ │
-│  └─────────────────────────┘           │  Port: 8000 │ │
-│                                         └──────┬──────┘ │
-│                                                │        │
-│                            ┌───────────────────┼──────┐ │
-│                            │  Backend Internals│      │ │
-│                            │                   │      │ │
-│                            │  PHIRedactor       │      │ │
-│                            │  InputGuardrail    │      │ │
-│                            │  LangGraph Graph   │      │ │
-│                            │  Python REPL       │      │ │
-│                            │  RuntimeLoader     │      │ │
-│                            └───────────────────────── ┘ │
-└────────────────────────────────────────────────────────┘
+│  ┌─────────────────────────┐   HTTP    ┌─────────────┐  │
+│  │  Frontend (Streamlit)   │ ───────►  │  Backend    │  │
+│  │  Port: 8501             │           │  (FastAPI)  │  │
+│  └─────────────────────────┘           │  Port: 8000 │  │
+│                                        └──────┬──────┘  │
+│                                               │         │
+│                            ┌──────────────────▼──────┐  │
+│                            │  Backend Internals │    │  │
+│                            │                    │    │  │
+│                            │  PHIRedactor       │    │  |
+│                            │  InputGuardrail    │    │  │
+│                            │  LangGraph Graph   │    │  │
+│                            │  Python REPL       │    │  │
+│                            │  RuntimeLoader     │    │  │
+│                            └─────────────────────────┘  │
+└──────────────────────────────────────────────────────── ┘
                                         │
                               ┌─────────▼──────────┐
                               │   Groq API (LLM)   │
-                              │   External service  │
+                              │   External service │
                               └────────────────────┘
 ```
 
@@ -193,8 +193,6 @@ Ensure the following are installed and available on your system:
 | **Docker Desktop / Engine** | Run containerised services | [docker.com](https://www.docker.com/products/docker-desktop/) |
 | **Groq API Key** | LLM inference for the Analyst and Supervisor agents | [console.groq.com](https://console.groq.com/) |
 | **Trained Guardrail Model** | DistilBERT weights for input classification | See [Guardrail Model Training](#guardrail-model-training) |
-
-> **Python / Node.js are NOT required** on your host machine — everything runs inside Docker containers.
 
 ---
 
